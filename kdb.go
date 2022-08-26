@@ -40,6 +40,17 @@ func (c *KDBConn) ok() bool {
 
 // process clients requests
 func HandleClientConnection(conn net.Conn) {
+	HandleClientConnectionEx(conn, defaultClientHandleFunc)
+}
+
+func defaultClientHandleFunc(conn net.Conn, data *K, msgtype ReqType) {
+	if msgtype == SYNC {
+		Encode(conn, RESPONSE, Error(ErrSyncRequest))
+	}
+	// don't respond
+}
+
+func HandleClientConnectionEx(conn net.Conn, handleFunc func(net.Conn, *K, ReqType) ) {
 	c := conn.(*net.TCPConn)
 	c.SetKeepAlive(true)
 	c.SetNoDelay(true)
@@ -53,16 +64,13 @@ func HandleClientConnection(conn net.Conn) {
 	rbuf := bufio.NewReaderSize(conn, 4*1024*1024)
 	i := 0
 	for {
-		_, msgtype, err := Decode(rbuf)
+		d, msgtype, err := Decode(rbuf)
 
 		if err == io.EOF {
 			conn.Close()
 			return
 		}
-		if msgtype == SYNC {
-			Encode(conn, RESPONSE, Error(ErrSyncRequest))
-		}
-		// don't respond
+		handleFunc(conn, d, msgtype)
 		i++
 	}
 }
