@@ -43,14 +43,14 @@ func HandleClientConnection(conn net.Conn) {
 	HandleClientConnectionEx(conn, defaultClientHandleFunc)
 }
 
-func defaultClientHandleFunc(conn net.Conn, data *K, msgtype ReqType) {
+func defaultClientHandleFunc(conn net.Conn, data *K, msgtype ReqType, e error) {
 	if msgtype == SYNC {
 		Encode(conn, RESPONSE, Error(ErrSyncRequest))
 	}
 	// don't respond
 }
 
-func HandleClientConnectionEx(conn net.Conn, handleFunc func(net.Conn, *K, ReqType) ) {
+func HandleClientConnectionEx(conn net.Conn, handleFunc func(net.Conn, *K, ReqType, error) ) {
 	c := conn.(*net.TCPConn)
 	c.SetKeepAlive(true)
 	c.SetNoDelay(true)
@@ -70,7 +70,13 @@ func HandleClientConnectionEx(conn net.Conn, handleFunc func(net.Conn, *K, ReqTy
 			conn.Close()
 			return
 		}
-		handleFunc(conn, d, msgtype)
+
+		handleFunc(conn, d, msgtype, err)
+
+		if d == nil {
+			conn.Close()
+			return
+		}
 		i++
 	}
 }
