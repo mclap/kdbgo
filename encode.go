@@ -52,6 +52,8 @@ func writeData(dbuf io.Writer, order binary.ByteOrder, data *K) (err error) {
 		binary.Write(dbuf, order, val)
 	case -KG, -KH, -KI, -KJ, -KE, -KF, -UU:
 		binary.Write(dbuf, order, data.Data)
+	case --KD, -KU, -KV, -KT:
+		binary.Write(dbuf, order, data.Data)
 	case -KP:
 		tosend := data.Data.(time.Time)
 		binary.Write(dbuf, order, tosend.Sub(qEpoch))

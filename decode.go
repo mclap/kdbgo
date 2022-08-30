@@ -136,7 +136,7 @@ func readData(r *bufio.Reader, order binary.ByteOrder) (kobj *K, err error) {
 		binary.Read(r, order, &sh)
 		return &K{msgtype, NONE, sh}, nil
 
-	case -KI, -KD, -KU, -KV:
+	case -KI, -KD, -KU, -KV, -KT:
 		var i int32
 		binary.Read(r, order, &i)
 		return &K{msgtype, NONE, i}, nil
